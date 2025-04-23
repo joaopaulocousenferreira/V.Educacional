@@ -1,0 +1,331 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Biblioteca Veducacional - Beta</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <style>
+        body {
+            font-family: sans-serif;
+            background-color: #f4f4f4;
+        }
+
+        .biblioteca-panel {
+            background-color: #fff;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            padding: 20px;
+            margin-bottom: 10px;
+            max-height: 400px;
+            overflow-y: hidden;
+            transition: max-height 0.3s ease;
+        }
+
+        .biblioteca-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+
+        .biblioteca-header h2 {
+            margin: 0;
+            color: #333;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .search-bar {
+            display: flex;
+        }
+
+        .search-input {
+            padding: 8px;
+            border: 1px solid #ccc;
+            border-radius: 5px 0 0 5px;
+            flex-grow: 1;
+            outline: none;
+        }
+
+        .search-button {
+            background-color: #28a745;
+            color: white;
+            border: none;
+            padding: 8px;
+            border-radius: 0 5px 5px 0;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+            width: auto;
+            min-width: unset;
+        }
+
+        .search-button i {
+            margin: 0;
+        }
+
+        .search-button:hover {
+            background-color: #1e7e34;
+        }
+
+        .filter-options {
+            margin-bottom: 15px;
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+
+        .filter-options label {
+            font-size: 0.9em;
+            color: #555;
+        }
+
+        .filter-options select {
+            padding: 8px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            outline: none;
+        }
+
+        .biblioteca-list {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 15px;
+            padding-bottom: 10px;
+        }
+
+        .livro-item {
+            background-color: #f9f9f9;
+            border: 1px solid #eee;
+            border-radius: 5px;
+            padding: 10px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-align: center;
+        }
+
+        .livro-capa {
+            width: 80px;
+            height: 120px;
+            margin-bottom: 8px;
+            border-radius: 3px;
+            overflow: hidden;
+        }
+
+        .livro-capa img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .livro-titulo {
+            font-size: 1em;
+            font-weight: bold;
+            margin-bottom: 5px;
+            color: #333;
+        }
+
+        .livro-autor {
+            font-size: 0.9em;
+            color: #555;
+            margin-bottom: 8px;
+        }
+
+        .acoes-livro button {
+            background-color: #28a745;
+            color: white;
+            border: none;
+            padding: 8px 12px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 0.9em;
+            transition: background-color 0.3s ease;
+            margin: 2px;
+        }
+
+        .acoes-livro button:hover {
+            background-color: #1e7e34;
+        }
+
+        .ver-mais-button {
+            background-color: #007bff;
+            color: white;
+            border: none;
+            padding: 10px 15px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 1em;
+            transition: background-color 0.3s ease;
+            margin-top: 10px;
+            display: block;
+            width: 150px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        .ver-mais-button:hover {
+            background-color: #0056b3;
+        }
+
+        .fa-heart-branco {
+            color: white;
+        }
+
+        .fa-heart-vermelho {
+            color: red;
+        }
+    </style>
+</head>
+<body>
+    <div class="biblioteca-panel" id="bibliotecaPanel">
+        <div class="biblioteca-header">
+            <h2><i class="fas fa-book"></i> Biblioteca Veducacional</h2>
+            <div class="search-bar">
+                <input type="text" class="search-input" placeholder="Buscar por título, autor...">
+                <button class="search-button"><i class="fas fa-search"></i></button>
+            </div>
+        </div>
+
+        <div class="filter-options">
+            <label for="categoria">Categoria:</label>
+            <select id="categoria">
+                <option value="">Todas</option>
+                <option value="programacao">Programação</option>
+                <option value="matematica">Matemática</option>
+                <option value="historia">História</option>
+                <option value="literatura">Literatura</option>
+                <option value="favoritos">Favoritos</option>
+            </select>
+
+            <label for="formato">Formato:</label>
+            <select id="formato">
+                <option value="">Todos</option>
+                <option value="ebook">E-book</option>
+                <option value="audiobook">Audiobook</option>
+                <option value="artigo">Artigo</option>
+            </select>
+        </div>
+
+        <div class="biblioteca-list" id="lista-biblioteca">
+            </div>
+    </div>
+
+    <button class="ver-mais-button" id="verMaisBtn">Ver Mais</button>
+
+    <script>
+        const livros = [
+            { id: 1, titulo: "Introdução à Programação em Python", autor: "John Doe", categoria: "programacao", formato: "ebook", urlCapa: "https://static.vecteezy.com/system/resources/thumbnails/013/446/278/small/digital-technology-binary-code-blue-background-matrix-cyber-technology-security-abstract-circuit-tech-secure-internet-network-connection-binary-zero-one-number-ai-big-data-illustration-vector.jpg", favorito: false },
+            { id: 2, titulo: "Cálculo para Iniciantes", autor: "Jane Smith", categoria: "matematica", formato: "ebook", urlCapa: "https://static.vecteezy.com/system/resources/thumbnails/021/826/876/small_2x/hand-drawn-math-symbols-icon-in-flat-style-mathematics-formula-illustration-on-isolated-background-school-education-sign-business-concept-vector.jpg", favorito: false },
+            { id: 3, titulo: "A História do Brasil Colonial", autor: "Carlos Silva", categoria: "historia", formato: "audiobook", urlCapa: "https://media.gazetadopovo.com.br/2016/04/0e51c4948e7d29d0c50067f8991e31de-gpMedium.jpg", favorito: false },
+            { id: 4, titulo: "Dom Casmurro", autor: "Machado de Assis", categoria: "literatura", formato: "ebook", urlCapa: "https://img.freepik.com/fotos-gratis/titulos-de-livros-antigos-de-nossa-colecao-original-da-biblioteca-de-dominio-publico_53876-160406.jpg?semt=ais_hybrid&w=740", favorito: false },
+            { id: 5, titulo: "Algoritmos e Estruturas de Dados", autor: "Peter Jones", categoria: "programacao", formato: "artigo", urlCapa: "https://static.vecteezy.com/system/resources/thumbnails/031/734/600/small_2x/programming-code-abstract-technology-background-3d-rendering-abctract-coding-programming-developing-typing-script-source-languages-symbols-project-data-showing-in-screen-close-up-ai-generated-free-photo.jpg", favorito: false },
+            { id: 6, titulo: "Geometria Analítica", autor: "Mary Brown", categoria: "matematica", formato: "ebook", urlCapa: "https://img.freepik.com/free-vector/abstract-math_98292-4478.jpg", favorito: false },
+            { id: 7, titulo: "A Revolução Francesa", autor: "Lucas Oliveira", categoria: "historia", formato: "ebook", urlCapa: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRVBMYSLws47nDZQPytBQEec3P_EGVcd2ROCA&s", favorito: false },
+            { id: 8, titulo: "Memórias Póstumas de Brás Cubas", autor: "Machado de Assis", categoria: "literatura", formato: "audiobook", urlCapa: "https://img.freepik.com/fotos-premium/livros-antigos-em-uma-estante_157125-14180.jpg", favorito: false },
+            { id: 9, titulo: "Programação Avançada em JavaScript", autor: "Brendan Eich Filho", categoria: "programacao", formato: "ebook", urlCapa: "https://img.freepik.com/vetores-premium/codigo-de-programacao-fundo-de-codificacao-ou-hacker-icone-de-codigo-de-programacao-feito-com-codigo-binario_127544-815.jpg?semt=ais_hybrid&w=740", favorito: false },
+            { id: 10, titulo: "Desvendando o C++ Moderno", autor: "Bjarne Filho", categoria: "programacao", formato: "artigo", urlCapa: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRwCUh12dnBiR-81B96CaU2uveRw-r4tIP8Ug&s", favorito: false },
+            { id: 11, titulo: "Inteligência Artificial para Desenvolvedores", autor: "Geoffrey Filho", categoria: "programacao", formato: "ebook", urlCapa: "https://static.vecteezy.com/ti/fotos-gratis/t2/6709644-abstract-modern-tech-of-programming-code-screen-developer-gratis-foto.jpg", favorito: false }
+            // Adicione mais livros conforme necessário
+        ];
+
+        const listaBiblioteca = document.getElementById('lista-biblioteca');
+        const searchInput = document.querySelector('.search-input');
+        const categoriaFilter = document.getElementById('categoria');
+        const formatoFilter = document.getElementById('formato');
+        const bibliotecaPanel = document.getElementById('bibliotecaPanel');
+        const verMaisBtn = document.getElementById('verMaisBtn');
+        let expanded = false;
+        const initialHeight = bibliotecaPanel.style.maxHeight;
+
+        function exibirLivros(lista) {
+            listaBiblioteca.innerHTML = '';
+            lista.forEach(livro => {
+                const livroDiv = document.createElement('div');
+                livroDiv.classList.add('livro-item');
+                livroDiv.innerHTML = `
+                    <div class="livro-capa">
+                        <img src="${livro.urlCapa}" alt="Capa de ${livro.titulo}">
+                    </div>
+                    <h3 class="livro-titulo">${livro.titulo}</h3>
+                    <p class="livro-autor">Por: ${livro.autor}</p>
+                    <div class="acoes-livro">
+                        <button title="Ver Detalhes"><i class="fas fa-info-circle"></i></button>
+                        <button
+                            title="${livro.favorito ? 'Remover dos Favoritos' : 'Adicionar aos Favoritos'}"
+                            onclick="alternarFavorito(${livro.id})"
+                            id="favorito-livro-${livro.id}"
+                        >
+                            <i class="fas fa-heart ${livro.favorito ? 'fa-heart-vermelho' : 'fa-heart-branco'}"></i>
+                        </button>
+                        <button title="Ler/Ouvir"><i class="fas fa-book-open"></i></button>
+                    </div>
+                `;
+                listaBiblioteca.appendChild(livroDiv);
+            });
+        }
+
+        function alternarFavorito(idLivro) {
+            const livro = livros.find(livro => livro.id === idLivro);
+            if (livro) {
+                livro.favorito = !livro.favorito;
+                const iconeFavorito = document.querySelector(`#favorito-livro-${idLivro} i`);
+                if (iconeFavorito) {
+                    iconeFavorito.classList.toggle('fa-heart-branco', !livro.favorito);
+                    iconeFavorito.classList.toggle('fa-heart-vermelho', livro.favorito);
+                }
+            }
+            filtrarLivros();
+        }
+
+        function filtrarLivros() {
+            const searchTerm = searchInput.value.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+            const categoriaSelecionada = categoriaFilter.value;
+            const formatoSelecionado = formatoFilter.value;
+
+            const livrosFiltrados = livros.filter(livro => {
+                const tituloNormalizado = livro.titulo.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+                const autorNormalizado = livro.autor.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+                const buscaTitulo = tituloNormalizado.includes(searchTerm);
+                const buscaAutor = autorNormalizado.includes(searchTerm);
+                const filtroFormato = formatoSelecionado === "" || livro.formato === formatoSelecionado;
+                let filtroCategoria = false;
+
+                if (categoriaSelecionada === "") {
+                    filtroCategoria = true;
+                } else if (categoriaSelecionada === "favoritos") {
+                    filtroCategoria = livro.favorito;
+                } else {
+                    filtroCategoria = livro.categoria === categoriaSelecionada;
+                }
+
+                return buscaTitulo && buscaAutor && filtroCategoria && filtroFormato;
+            });
+
+            exibirLivros(livrosFiltrados);
+        }
+
+        verMaisBtn.addEventListener('click', () => {
+            expanded = !expanded;
+            if (expanded) {
+                bibliotecaPanel.style.maxHeight = 'none'; // Remove a altura máxima para expandir
+                bibliotecaPanel.style.overflowY = 'auto'; // Adiciona a barra de rolagem
+                verMaisBtn.textContent = 'Ver Menos';
+            } else {
+                bibliotecaPanel.style.maxHeight = initialHeight; // Retorna à altura inicial
+                bibliotecaPanel.style.overflowY = 'hidden'; // Esconde a barra de rolagem
+                verMaisBtn.textContent = 'Ver Mais';
+            }
+        });
+
+        // Exibir todos os livros inicialmente
+        exibirLivros(livros);
+
+        // Adicionar eventos para os filtros
+        searchInput.addEventListener('input', filtrarLivros);
+        categoriaFilter.addEventListener('change', filtrarLivros);
+        formatoFilter.addEventListener('change', filtrarLivros);
+    </script>
+</body>
+</html>
