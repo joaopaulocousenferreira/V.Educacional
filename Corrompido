@@ -1,0 +1,739 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Biblioteca Veducacional - Beta</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <style>
+        body {
+            font-family: sans-serif;
+            background-color: #f4f4f4;
+        }
+
+        .biblioteca-panel {
+            background-color: #fff;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            padding: 20px;
+            margin-bottom: 10px;
+            max-height: 400px;
+            overflow-y: hidden;
+            transition: max-height 0.3s ease;
+            display: grid; /* Alterado para grid para o layout inicial */
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 15px;
+        }
+
+        .biblioteca-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+            grid-column: 1 / -1; /* Garante que o header ocupa toda a largura na grid */
+        }
+
+        .biblioteca-header h2 {
+            margin: 0;
+            color: #333;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .search-bar {
+            display: flex;
+        }
+
+        .search-input {
+            padding: 8px;
+            border: 1px solid #ccc;
+            border-radius: 5px 0 0 5px;
+            flex-grow: 1;
+            outline: none;
+        }
+
+        .search-button {
+            background-color: #28a745;
+            color: white;
+            border: none;
+            padding: 8px;
+            border-radius: 0 5px 5px 0;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+            width: auto;
+            min-width: unset;
+        }
+
+        .search-button i {
+            margin: 0;
+        }
+
+        .search-button:hover {
+            background-color: #1e7e34;
+        }
+
+        .filter-options {
+            margin-bottom: 15px;
+            display: flex;
+            gap: 10px;
+            align-items: center;
+            grid-column: 1 / -1; /* Garante que os filtros ocupam toda a largura na grid */
+        }
+
+        .filter-options label {
+            font-size: 0.9em;
+            color: #555;
+        }
+
+        .filter-options select {
+            padding: 8px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            outline: none;
+        }
+
+        .biblioteca-list {
+            display: contents; /* Os filhos se tornam itens do grid pai */
+        }
+
+        .livro-item {
+            background-color: #f9f9f9;
+            border: 1px solid #eee;
+            border-radius: 5px;
+            padding: 10px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-align: center;
+        }
+
+        .livro-capa {
+            width: 80px;
+            height: 120px;
+            margin-bottom: 8px;
+            border-radius: 3px;
+            overflow: hidden;
+        }
+
+        .livro-capa img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .livro-titulo {
+            font-size: 1em;
+            font-weight: bold;
+            margin-bottom: 5px;
+            color: #333;
+        }
+
+        .livro-autor {
+            font-size: 0.9em;
+            color: #555;
+            margin-bottom: 8px;
+        }
+
+        .acoes-livro button {
+            background-color: #28a745;
+            color: white;
+            border: none;
+            padding: 8px 12px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 0.9em;
+            transition: background-color 0.3s ease;
+            margin: 2px;
+        }
+
+        .acoes-livro button:hover {
+            background-color: #1e7e34;
+        }
+
+        .ver-mais-button {
+            background-color: #007bff;
+            color: white;
+            border: none;
+            padding: 10px 15px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 1em;
+            transition: background-color 0.3s ease;
+            margin-top: 10px;
+            display: block;
+            width: 150px;
+            margin-left: auto;
+            margin-right: auto;
+            grid-column: 1 / -1; /* Garante que o botão "Ver Mais" ocupa toda a largura na grid */
+        }
+
+        .ver-mais-button:hover {
+            background-color: #0056b3;
+        }
+
+        .fa-heart-branco {
+            color: white;
+        }
+
+        .fa-heart-vermelho {
+            color: red;
+        }
+
+        .modal {
+            display: none; /* Hidden by default */
+            position: fixed; /* Stay in place */
+            z-index: 2; /* Sit on top */
+            left: 0;
+            top: 0;
+            width: 100%; /* Full width */
+            height: 100%; /* Full height */
+            overflow: auto; /* Enable scroll if needed */
+            background-color: rgba(0,0,0,0.4); /* Black w/ opacity */
+        }
+
+        .modal-content {
+            background-color: #fefefe;
+            margin: 15% auto; /* 15% from the top and centered */
+            padding: 20px;
+            border: 1px solid #888;
+            width: 80%; /* Could be more or less, depending on screen size */
+            border-radius: 8px;
+            position: relative;
+        }
+
+        .close-button {
+            color: #aaa;
+            float: right;
+            font-size: 28px;
+            font-weight: bold;
+        }
+
+        .close-button:hover,
+        .close-button:focus {
+            color: black;
+            text-decoration: none;
+            cursor: pointer;
+        }
+
+        #modal-capa {
+            max-width: 200px;
+            height: auto;
+            display: block;
+            margin: 0 auto 15px;
+            border-radius: 5px;
+        }
+
+        #modal-titulo {
+            text-align: center;
+            margin-bottom: 10px;
+            color: #333;
+        }
+
+        #modal-autor {
+            text-align: center;
+            margin-bottom: 15px;
+            color: #555;
+            font-style: italic;
+        }
+
+        #modal-descricao {
+            color: #333;
+            line-height: 1.6;
+            margin-bottom: 20px; /* Adicionado margem abaixo da descrição */
+        }
+
+        .modal-acoes {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            margin-top: 10px; /* Reduzida a margem superior */
+        }
+
+        .modal-acoes button {
+            background-color: #007bff;
+            color: white;
+            border: none;
+            padding: 10px 15px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 1em;
+            transition: background-color 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .modal-acoes button:hover {
+            background-color: #0056b3;
+        }
+
+        .modal-acoes button i {
+            font-size: 1.1em;
+        }
+
+        .leitura-panel {
+            background-color: #fff;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            padding: 20px;
+            margin-bottom: 10px;
+            display: none; /* Hidden by default */
+        }
+
+        .voltar-button {
+            background-color: #6c757d;
+            color: white;
+            border: none;
+            padding: 10px 15px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 1em;
+            transition: background-color 0.3s ease;
+            margin-bottom: 15px;
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .voltar-button:hover {
+            background-color: #5a6268;
+        }
+
+        .conteudo-livro {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-align: center;
+            gap: 15px; /* Espaçamento entre os elementos dentro do conteúdo */
+        }
+
+        #leitura-capa {
+            max-width: 200px;
+            height: auto;
+            margin-bottom: 15px;
+            border-radius: 5px;
+        }
+
+        #leitura-titulo {
+            color: #333;
+            margin-bottom: 10px;
+        }
+
+        #leitura-autor {
+            color: #555;
+            font-style: italic;
+            margin-bottom: 20px;
+        }
+
+        #leitura-texto {
+            color: #333;
+            line-height: 1.6;
+            text-align: left;
+            padding: 20px;
+            border: 1px solid #eee;
+            border-radius: 5px;
+            background-color: #f9f9f9;
+            white-space: pre-line; /* Preserve line breaks */
+            margin-bottom: 15px; /* Espaço abaixo do texto */
+        }
+
+        .feedback-button {
+            background-color: #00c853; /* Cor verde mais vibrante */
+            color: white;
+            border: none;
+            padding: 10px 15px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 1em;
+            transition: background-color 0.3s ease;
+            margin-top: 10px;
+        }
+
+        .feedback-button:hover {
+            background-color: #009640; /* Tom de verde mais escuro no hover */
+        }
+
+        .feedback-panel {
+            background-color: #f9f9f9;
+            border: 1px solid #eee;
+            border-radius: 5px;
+            padding: 15px;
+            margin-top: 15px;
+            text-align: left;
+        }
+
+        .feedback-actions {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 10px;
+            align-items: center;
+        }
+
+        .feedback-actions button {
+            background-color: #007bff;
+            color: white;
+            border: none;
+            padding: 8px 12px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 0.9em;
+            transition: background-color 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .feedback-actions button:hover {
+            background-color: #0056b3;
+        }
+
+        .comment-area textarea {
+            width: 100%;
+            padding: 8px;
+            margin-bottom: 10px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            box-sizing: border-box;
+            resize: vertical; /* Permite redimensionar verticalmente */
+        }
+
+        .comment-area button.submit-comment {
+            background-color: #28a745;
+            color: white;
+            border: none;
+            padding: 10px 15px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 1em;
+            transition: background-color 0.3s ease;
+        }
+
+        .comment-area button.submit-comment:hover {
+            background-color: #1e7e34;
+        }
+    </style>
+</head>
+<body>
+    <div class="biblioteca-panel" id="bibliotecaPanel">
+        <div class="biblioteca-header">
+            <h2><i class="fas fa-book"></i> Biblioteca Veducacional</h2>
+            <div class="search-bar">
+                <input type="text" class="search-input" placeholder="Buscar por título, autor...">
+                <button class="search-button"><i class="fas fa-search"></i></button>
+            </div>
+        </div>
+
+        <div class="filter-options">
+            <label for="categoria">Categoria:</label>
+            <select id="categoria">
+                <option value="">Todas</option>
+                <option value="programacao">Programação</option>
+                <option value="matematica">Matemática</option>
+                <option value="historia">História</option>
+                <option value="literatura">Literatura</option>
+                <option value="favoritos">Favoritos</option>
+            </select>
+
+            <label for="formato">Formato:</label>
+            <select id="formato">
+                <option value="">Todas</option>
+                <option value="ebook">E-book</option>
+                <option value="audiobook">Audiobook</option>
+                <option value="artigo">Artigo</option>
+            </select>
+        </div>
+
+        <div class="biblioteca-list" id="lista-biblioteca">
+        </div>
+    </div>
+
+    <button class="ver-mais-button" id="verMaisBtn">Ver Mais</button>
+
+    <div id="detalhesLivroModal" class="modal">
+        <div class="modal-content">
+            <span class="close-button">&times;</span>
+            <img id="modal-capa" src="" alt="Capa do Livro">
+            <h2 id="modal-titulo"></h2>
+            <p id="modal-autor"></p>
+            <p id="modal-descricao"></p>
+            <div class="modal-acoes">
+                <button id="modal-favoritar-btn" title="Adicionar aos Favoritos"><i class="fas fa-heart fa-heart-branco"></i> Favoritar</button>
+                <button id="modal-ler-ouvir-btn" title="Ler/Ouvir"><i class="fas fa-book-open"></i> Ler/Ouvir</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="leitura-panel" id="leituraPanel" style="display: none;">
+        <button class="voltar-button" id="voltarBtn"><i class="fas fa-arrow-left"></i> Voltar para a Biblioteca</button>
+        <div class="conteudo-livro">
+            <img id="leitura-capa" src="" alt="Capa do Livro">
+            <h2 id="leitura-titulo"></h2>
+            <p id="leitura-autor"></p>
+            <div id="leitura-texto">
+            </div>
+            </div>
+    </div>
+
+    <script>
+        const listaBiblioteca = document.getElementById('lista-biblioteca');
+        const searchInput = document.querySelector('.search-input');
+        const categoriaFilter = document.getElementById('categoria');
+        const formatoFilter = document.getElementById('formato');
+        const bibliotecaPanel = document.getElementById('bibliotecaPanel');
+        const verMaisBtn = document.getElementById('verMaisBtn');
+        let expanded = false;
+        const initialHeight = bibliotecaPanel.style.maxHeight;
+        const detalhesLivroModal = document.getElementById('detalhesLivroModal');
+        const modalCapa = document.getElementById('modal-capa');
+        const modalTitulo = document.getElementById('modal-titulo');
+        const modalAutor = document.getElementById('modal-autor');
+        const modalDescricao = document.getElementById('modal-descricao');
+        const closeButton = document.querySelector('.close-button');
+        const modalFavoritarBtn = document.getElementById('modal-favoritar-btn');
+        const modalLerOuvirBtn = document.getElementById('modal-ler-ouvir-btn');
+        const leituraPanel = document.getElementById('leituraPanel');
+        const voltarBtn = document.getElementById('voltarBtn');
+        const leituraCapa = document.getElementById('leitura-capa');
+        const leituraTitulo = document.getElementById('leitura-titulo');
+        const leituraAutor = document.getElementById('leitura-autor');
+        const leituraTexto = document.getElementById('leitura-texto');
+
+        const livros = [
+            { id: 1, titulo: "Introdução à Programação em Python", autor: "John Doe", categoria: "programacao", formato: "ebook", urlCapa: "https://static.vecteezy.com/system/resources/thumbnails/013/446/278/small/digital-technology-binary-code-blue-background-matrix-cyber-technology-security-abstract-circuit-tech-secure-internet-network-connection-binary-zero-one-number-ai-big-data-illustration-vector.jpg", favorito: false, descricao: "Um guia introdutório abrangente para a linguagem de programação Python.", linkLeitura: "#", texto: "Este é um texto de exemplo sobre introdução à programação em Python. Aqui você aprenderá os conceitos básicos da linguagem, como variáveis, loops, funções e muito mais. Continue lendo para descobrir o mundo da programação!" },
+            { id: 2, titulo: "Cálculo para Iniciantes", autor: "Jane Smith", categoria: "matematica", formato: "ebook", urlCapa: "https://static.vecteezy.com/system/resources/thumbnails/021/826/876/small_2x/hand-drawn-math-symbols-icon-in-flat-style-mathematics-formula-illustration-on-isolated-background-school-education-sign-business-concept-vector.jpg", favorito: false, descricao: "Um livro didático para quem está começando a estudar cálculo.", linkLeitura: "#", texto: "Bem-vindo ao mundo do cálculo! Neste material, exploraremos os fundamentos, começando com funções e limites. Prepare-se para entender as taxas de variação e as áreas sob curvas." },
+            { id: 3, titulo: "A História do Brasil Colonial", autor: "Carlos Silva", categoria: "historia", formato: "audiobook", urlCapa: "https://media.gazetadopovo.com.br/2016/04/0e51c4948e7d29d0c50067f8991e31de-gpMedium.jpg", favorito: false, descricao: "Uma análise detalhada do período colonial da história brasileira.", linkLeitura: "#", texto: "Mergulhe na fascinante história do Brasil Colonial. Desde a chegada dos portugueses até os movimentos de independência, este material oferece uma visão geral dos principais eventos e figuras deste período." },
+            { id: 4, titulo: "Dom Casmurro", autor: "Machado de Assis", categoria: "literatura", formato: "ebook", urlCapa: "https://img.freepik.com/fotos-gratis/titulos-de-livros-antigos-de-nossa-colecao-original-da-biblioteca-de-dominio-publico_53876-160406.jpg?semt=ais_hybrid&w=740", favorito: false, descricao: "Um dos maiores clássicos da literatura brasileira, explorando temas de ciúme e dúvida.", linkLeitura: "#", texto: "Leia um trecho de Dom Casmurro: 'Olhos de cigana oblíqua e dissimulada. Eu não sabia o que era oblíqua e dissimulada; mas via-os...' Descubra os mistérios da narrativa de Bentinho." },
+            { id: 5, titulo: "Algoritmos e Estruturas de Dados", autor: "Peter Jones", categoria: "programacao", formato: "artigo", urlCapa: "https://static.vecteezy.com/system/resources/thumbnails/031/734/600/small_2x/programming-code-abstract-technology-background-3d-rendering-abctract-coding-programming-developing-typing-script-source-languages-symbols-project-data-showing-in-screen-close-up-ai-generated-free-photo.jpg", favorito: false, descricao: "Um artigo técnico sobre os fundamentos de algoritmos e estruturas de dados.", linkLeitura: "#", texto: "Neste artigo, exploramos os conceitos fundamentais de algoritmos, como ordenação e busca, e estruturas de dados, incluindo arrays e listas encadeadas. Entenda como a eficiência é crucial na ciência da computação." },
+            { id: 6, titulo: "Geometria Analítica", autor: "Mary Brown", categoria: "matematica", formato: "ebook", urlCapa: "https://img.freepik.com/free-vector/abstract-math_98292-4478.jpg", favorito: false, descricao: "Um guia para entender os conceitos e aplicações da geometria analítica.", linkLeitura: "#", texto: "Explore o universo da geometria analítica, onde a álgebra encontra a geometria. Aprenda sobre coordenadas, retas, planos e as equações que descrevem formas no espaço." },
+            { id: 7, titulo: "A Revolução Francesa", autor: "Lucas Oliveira", categoria: "historia", formato: "ebook", urlCapa: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRVBMYSLws47nDZQPytBQEec3P_EGVcd2ROCA&s", favorito: false, descricao: "Um relato dos eventos e consequências da Revolução Francesa.", linkLeitura: "#", texto: "Testemunhe os eventos dramáticos da Revolução Francesa, desde a queda da Bastilha até o reinado do terror. Analisaremos as causas e os impactos duradouros deste período crucial da história moderna." },
+            { id: 8, titulo: "Memórias Póstumas de Brás Cubas", autor: "Machado de Assis", categoria: "literatura", formato: "audiobook", urlCapa: "https://img.freepik.com/fotos-premium/livros-antigos-em-uma-estante_157125-14180.jpg", favorito: false, descricao: "Outra obra-prima de Machado de Assis, narrada por um defunto autor.", linkLeitura: "#", texto: "Ouça um trecho das Memórias Póstumas: 'Ao verme que primeiro roeu as frias carnes do meu cadáver dedico como saudosa lembrança estas Memórias Póstumas.' Deixe-se levar pela ironia e genialidade de Brás Cubas." },
+            { id: 9, titulo: "Programação Avançada em JavaScript", autor: "Brendan Eich Filho", categoria: "programacao", formato: "ebook", urlCapa: "https://img.freepik.com/vetores-premium/codigo-de-programacao-fundo-de-codificacao-ou-hacker-icone-de-codigo-de-programacao-feito-com-codigo-binario_127544-815.jpg?semt=ais_hybrid&w=740", favorito: false, descricao: "Um livro para desenvolvedores JavaScript que desejam aprofundar seus conhecimentos.", linkLeitura: "#", texto: "Para desenvolvedores experientes, este material explora tópicos avançados em JavaScript, como closures, prototypes, async/await e programação funcional. Eleve suas habilidades a um novo nível." },
+            { id: 10, titulo: "Desvendando o C++ Moderno", autor: "Bjarne Filho", categoria: "programacao", formato: "artigo", urlCapa: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRwCUh12dnBiR-81B96CaU2uveRw-r4tIP8Ug&s", favorito: false, descricao: "Um artigo explorando os recursos e as melhores práticas do C++ moderno.", linkLeitura: "#", texto: "Descubra os recursos e as melhores práticas do C++ moderno, incluindo lambdas, smart pointers e concurrency. Aprenda a escrever código eficiente e robusto com esta poderosa linguagem." },
+            { id: 11, titulo: "Inteligência Artificial para Desenvolvedores", autor: "Geoffrey Filho", categoria: "programacao", formato: "ebook", urlCapa: "https://static.vecteezy.com/ti/fotos-gratis/t2/6709644-abstract-modern-tech-of-programming-code-screen-developer-gratis-foto.jpg", favorito: false, descricao: "Um guia prático sobre como aplicar conceitos de IA em projetos de desenvolvimento.", linkLeitura: "#", texto: "Explore o mundo da Inteligência Artificial e aprenda como aplicar conceitos de machine learning e deep learning em seus projetos de desenvolvimento. Este guia prático o ajudará a dar os primeiros passos." }
+            // Adicione mais livros conforme necessário com as propriedades 'descricao' e 'linkLeitura' e 'texto'
+        ];
+
+        function exibirLivros(lista) {
+            listaBiblioteca.innerHTML = '';
+            lista.forEach(livro => {
+                const livroDiv = document.createElement('div');
+                livroDiv.classList.add('livro-item');
+                livroDiv.innerHTML = `
+                    <div class="livro-capa">
+                        <img src="${livro.urlCapa}" alt="Capa de <span class="math-inline">\{livro\.titulo\}"\>
+</div\>
+<h3 class\="livro\-titulo"\></span>{livro.titulo}</h3>
+                    <p class="livro-autor">Por: <span class="math-inline">\{livro\.autor\}</p\>
+<div class\="acoes\-livro"\>
+<button title\="Ver Detalhes" class\="detalhes\-btn" data\-livro\-id\="</span>{livro.id}"><i class="fas fa-info-circle"></i></button>
+                        <button
+                            title="<span class="math-inline">\{livro\.favorito ? 'Remover dos Favoritos' \: 'Adicionar aos Favoritos'\}"
+onclick\="alternarFavorito\(</span>{livro.id})"
+                            id="favorito-livro-${livro.id}"
+                        >
+                            <i class="fas fa-heart <span class="math-inline">\{livro\.favorito ? 'fa\-heart\-vermelho' \: 'fa\-heart\-branco'\}"\></i\>
+</button\>
+<button title\="Ler Material/Ouvir" class\="ler\-ouvir\-btn" data\-livro\-id\="</span>{livro.id}"><i class="fas fa-book-open"></i></button>
+                    </div>
+                `;
+                listaBiblioteca.appendChild(livroDiv);
+            });
+            adicionarEventListenersLivros(); // Adiciona os listeners após os livros serem exibidos
+        }
+
+        function alternarFavorito(idLivro) {
+            const livro = livros.find(livro => livro.id === idLivro);
+            if (livro) {
+                livro.favorito = !livro.favorito;
+                const iconeFavorito = document.querySelector(`#favorito-livro-${idLivro} i`);
+                if (iconeFavorito) {
+                    iconeFavorito.classList.toggle('fa-heart-branco', !livro.favorito);
+                    iconeFavorito.classList.toggle('fa-heart-vermelho', livro.favorito);
+                }
+                atualizarBotaoFavoritoModal(idLivro);
+                filtrarLivros(); // Atualiza a lista para refletir a mudança nos favoritos
+            }
+        }
+
+        function filtrarLivros() {
+            const searchTerm = searchInput.value.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+            const categoriaSelecionada = categoriaFilter.value;
+            const formatoSelecionado = formatoFilter.value;
+
+            const livrosFiltrados = livros.filter(livro => {
+                const tituloNormalizado = livro.titulo.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+                const autorNormalizado = livro.autor.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+                const buscaTitulo = tituloNormalizado.includes(searchTerm);
+                const buscaAutor = autorNormalizado.includes(searchTerm);
+                const filtroFormato = formatoSelecionado === "" || livro.formato === formatoSelecionado;
+                let filtroCategoria = false;
+
+                if (categoriaSelecionada === "") {
+                    filtroCategoria = true;
+                } else if (categoriaSelecionada === "favoritos") {
+                    filtroCategoria = livro.favorito;
+                } else {
+                    filtroCategoria = livro.categoria === categoriaSelecionada;
+                }
+
+                return (buscaTitulo || buscaAutor) && filtroCategoria && filtroFormato; // Corrigido para OU
+            });
+
+            exibirLivros(livrosFiltrados);
+        }
+
+        verMaisBtn.addEventListener('click', () => {
+            expanded = !expanded;
+            if (expanded) {
+                bibliotecaPanel.style.maxHeight = 'none'; // Remove a altura máxima para expandir
+                bibliotecaPanel.style.overflowY = 'auto'; // Adiciona a barra de rolagem
+                verMaisBtn.textContent = 'Ver Menos';
+            } else {
+                bibliotecaPanel.style.maxHeight = initialHeight; // Retorna à altura inicial
+                bibliotecaPanel.style.overflowY = 'hidden'; // Esconde a barra de rolagem
+                verMaisBtn.textContent = 'Ver Mais';
+            }
+        });
+
+        function exibirDetalhesLivro(livro) {
+            modalCapa.src = livro.urlCapa;
+            modalCapa.alt = `Capa do livro: ${livro.titulo}`;
+            modalTitulo.textContent = livro.titulo;
+            modalAutor.textContent = livro.autor;
+            modalDescricao.textContent = livro.descricao || 'Descrição não disponível.';
+
+            const modalFavoritarBtn = document.getElementById('modal-favoritar-btn');
+            modalFavoritarBtn.innerHTML = `<i class="fas fa-heart ${livro.favorito ? 'fa-heart-vermelho' : 'fa-heart-branco'}"></i> ${livro.favorito ? 'Remover Favorito' : 'Favoritar'}`;
+            modalFavoritarBtn.title = livro.favorito ? 'Remover dos Favoritos' : 'Adicionar aos Favoritos';
+            modalFavoritarBtn.onclick = function() { alternarFavorito(livro.id); atualizarBotaoFavoritoModal(livro.id); };
+
+            const modalLerOuvirBtn = document.getElementById('modal-ler-ouvir-btn');
+            if (modalLerOuvirBtn) {
+                modalLerOuvirBtn.onclick = function() {
+                    exibirConteudoLivro(livro);
+                    detalhesLivroModal.style.display = 'none'; // Fechar o modal
+                };
+            }
+
+            detalhesLivroModal.style.display = 'block';
+        }
+
+        function atualizarBotaoFavoritoModal(livroId) {
+            const livro = livros.find(livro => livro.id === livroId);
+            const modalFavoritarBtn = document.getElementById('modal-favoritar-btn');
+            if (livro && modalFavoritarBtn) {
+                modalFavoritarBtn.innerHTML = `<i class="fas fa-heart ${livro.favorito ? 'fa-heart-vermelho' : 'fa-heart-branco'}"></i> ${livro.favorito ? 'Remover Favorito' : 'Favoritar'}`;
+                modalFavoritarBtn.title = livro.favorito ? 'Remover dos Favoritos' : 'Adicionar aos Favoritos';
+            }
+        }
+
+        closeButton.addEventListener('click', function() {
+            detalhesLivroModal.style.display = 'none';
+        });
+
+        window.addEventListener('click', function(event) {
+            if (event.target == detalhesLivroModal) {
+                detalhesLivroModal.style.display = 'none';
+            }
+        });
+
+        function exibirConteudoLivro(livro) {
+            bibliotecaPanel.style.display = 'none';
+            detalhesLivroModal.style.display = 'none'; // Esconde o modal de detalhes, se estiver aberto
+            leituraPanel.style.display = 'block';
+            verMaisBtn.style.display = 'none'; // Esconde o botão "Ver Mais"
+
+            leituraCapa.src = livro.urlCapa;
+            leituraCapa.alt = `Capa do livro: ${livro.titulo}`;
+            leituraTitulo.textContent = livro.titulo;
+            leituraAutor.textContent = livro.autor;
+            leituraTexto.textContent = livro.texto || 'Conteúdo do material não disponível.';
+
+            // Adicionar o botão de Feedback
+            const feedbackButton = document.createElement('button');
+            feedbackButton.textContent = 'Feedback';
+            feedbackButton.classList.add('feedback-button'); // Adicione uma classe para estлизаção (opcional)
+
+            // Criar o painel de feedback (inicialmente escondido)
+            const feedbackPanel = document.createElement('div');
+            feedbackPanel.classList.add('feedback-panel');
+            feedbackPanel.style.display = 'none'; // Escondido por padrão
+            feedbackPanel.innerHTML = `
+                <div class="feedback-actions">
+                    <button class="like-button"><i class="fas fa-thumbs-up"></i></button>
+                    <button class="dislike-button"><i class="fas fa-thumbs-down"></i></button>
+                </div>
+                <div class="comment-area">
+                    <textarea placeholder="Deixe seu comentário aqui..."></textarea>
+                    <button class="submit-comment">Enviar Comentário</button>
+                </div>
+            `;
+
+            // Adicionar o botão de feedback e o painel ao conteúdo do livro
+            const conteudoLivroDiv = leituraPanel.querySelector('.conteudo-livro');
+            conteudoLivroDiv.appendChild(feedbackButton);
+            conteudoLivroDiv.appendChild(feedbackPanel);
+
+            // Adicionar um event listener ao botão de feedback para mostrar/esconder o painel
+            feedbackButton.addEventListener('click', function() {
+                feedbackPanel.style.display = feedbackPanel.style.display === 'none' ? 'block' : 'none';
+            });
+
+            // Por enquanto, vamos apenas adicionar um console.log para simular o envio do comentário
+            const submitCommentButton = feedbackPanel.querySelector('.submit-comment');
+            if (submitCommentButton) {
+                submitCommentButton.addEventListener('click', function() {
+                    const commentTextarea = feedbackPanel.querySelector('textarea');
+                    if (commentTextarea.value.trim() !== '') {
+                        console.log('Feedback enviado:', commentTextarea.value);
+                        alert('Feedback enviado! (Simulação)');
+                        commentTextarea.value = ''; // Limpar o textarea após o envio (simulado)
+                        feedbackPanel.style.display = 'none'; // Ocultar o painel após o envio (simulado)
+                    } else {
+                        alert('Por favor, escreva um comentário antes de enviar.');
+                    }
+                });
+            }
+        }
+
+        voltarBtn.addEventListener('click', function() {
+            leituraPanel.style.display = 'none';
+            bibliotecaPanel.style.display = 'grid'; // Ou 'block', dependendo de como você quer que a lista reapareça
+            verMaisBtn.style.display = 'block'; // Exibe o botão "Ver Mais" novamente
+        });
+
+        function adicionarEventListenersLivros() {
+            const detalhesButtons = document.querySelectorAll('.detalhes-btn');
+            detalhesButtons.forEach(button => {
+                button.addEventListener('click', function() {
+                    const livroId = parseInt(this.dataset.livroId);
+                    const livro = livros.find(livro => livro.id === livroId);
+                    if (livro) {
+                        exibirDetalhesLivro(livro);
+                    }
+                });
+            });
+
+            const lerOuvirButtons = document.querySelectorAll('.ler-ouvir-btn');
+            lerOuvirButtons.forEach(button => {
+                button.addEventListener('click', function() {
+                    const livroId = parseInt(this.dataset.livroId);
+                    const livroParaLer = livros.find(livro => livro.id === livroId);
+                    if (livroParaLer) {
+                        exibirConteudoLivro(livroParaLer);
+                    }
+                });
+            });
+        }
+
+        // Exibir todos os livros inicialmente
+        exibirLivros(livros);
+
+        // Adicionar eventos para os filtros
+        searchInput.addEventListener('input', filtrarLivros);
+        categoriaFilter.addEventListener('change', filtrarLivros);
+        formatoFilter.addEventListener('change', filtrarLivros);
+    </script>
+</body>
+</html>
